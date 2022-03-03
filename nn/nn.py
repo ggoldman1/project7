@@ -102,7 +102,12 @@ class NeuralNetwork:
             Z_curr: ArrayLike
                 Current layer linear transformed matrix.
         """
-        pass
+        Z_curr = A_prev.dot(W_curr.T) + b_curr.T
+        if activation == "relu":
+            A_curr = self._relu(Z_curr)
+        else:
+            A_curr = self._sigmoid(Z_curr)
+        return A_curr, Z_curr
 
     def forward(self, X: ArrayLike) -> Tuple[ArrayLike, Dict[str, ArrayLike]]:
         """
@@ -239,7 +244,7 @@ class NeuralNetwork:
             nl_transform: ArrayLike
                 Activation function output.
         """
-        pass
+        1/(1+np.exp(Z))
 
     def _relu(self, Z: ArrayLike) -> ArrayLike:
         """
@@ -253,7 +258,7 @@ class NeuralNetwork:
             nl_transform: ArrayLike
                 Activation function output.
         """
-        pass
+        return np.maximum(0, Z)
 
     def _sigmoid_backprop(self, dA: ArrayLike, Z: ArrayLike):
         """
