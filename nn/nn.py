@@ -15,7 +15,7 @@ class NeuralNetwork:
     Parameters:
         nn_arch: List[Dict[str, float]]
             This list of dictionaries describes the fully connected layers of the artificial neural network.
-            e.g. [{'input_dim': 64, 'output_dim': 32, 'activation': 'relu'}, {'input_dim': 32, 'output_dim': 8, 'activation:': 'sigmoid'}] will generate a
+            e.g. [{'input_dim': 64, 'output_dim': 32, 'activation': 'relu'}, {'input_dim': 32, 'output_dim': 8, 'activation': 'sigmoid'}] will generate a
             2 layer deep fully connected network with an input dimension of 64, a 32 dimension hidden layer
             and an 8 dimensional output.
         lr: float
@@ -34,7 +34,7 @@ class NeuralNetwork:
             This list of dictionaries describing the fully connected layers of the artificial neural network.
     """
     def __init__(self,
-                 nn_arch: List[Dict[str, Union(int, str)]],
+                 nn_arch: List[Dict[str, Union[int, str]]],
                  lr: float,
                  seed: int,
                  batch_size: int,
@@ -123,7 +123,16 @@ class NeuralNetwork:
             cache: Dict[str, ArrayLike]:
                 Dictionary storing Z and A matrices from `_single_forward` for use in backprop.
         """
-        pass
+        cache = {}
+        A_prev = X.copy()
+        for layer in range(1, len(self.arch) + 1):
+            A_curr, Z_curr = self._single_forward(self._param_dict[f"W{layer}"],
+                                                  self._param_dict[f"b{layer}"],
+                                                  A_prev, self.arch[layer-1]["activation"]) # pass through one layer
+            cache[f"A{layer}"] = A_curr # store A
+            cache[f"Z{layer}"] = Z_curr # store Z
+            A_prev = A_curr.copy() # update prev pointer
+        return A_prev, cache
 
     def _single_backprop(self,
                          W_curr: ArrayLike,
@@ -244,7 +253,7 @@ class NeuralNetwork:
             nl_transform: ArrayLike
                 Activation function output.
         """
-        1/(1+np.exp(Z))
+        return 1/(1+np.exp(Z))
 
     def _relu(self, Z: ArrayLike) -> ArrayLike:
         """
@@ -385,3 +394,8 @@ class NeuralNetwork:
                 to A matrix.
         """
         pass
+
+
+nn = NeuralNetwork([{'input_dim': 64, 'output_dim': 32, 'activation': 'relu'},
+                    {'input_dim': 32, 'output_dim': 8, 'activation': 'sigmoid'}], 0.1, 42, 10, 1, "mse")
+data = np.random.random((100, 64))
