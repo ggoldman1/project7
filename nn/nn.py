@@ -239,7 +239,7 @@ class NeuralNetwork:
             y_hat: ArrayLike
                 Prediction from the model.
         """
-        pass
+        return self.forward(X)
 
     def _sigmoid(self, Z: ArrayLike) -> ArrayLike:
         """
@@ -315,7 +315,7 @@ class NeuralNetwork:
             loss: float
                 Average loss over mini-batch.
         """
-        pass
+        return -((y * np.log(y_hat)) + ((1-y) * (np.log(1-y_hat)))).mean()
 
     def _binary_cross_entropy_backprop(self, y: ArrayLike, y_hat: ArrayLike) -> ArrayLike:
         """
@@ -331,7 +331,7 @@ class NeuralNetwork:
             dA: ArrayLike
                 partial derivative of loss with respect to A matrix.
         """
-        pass
+        return -((y/yhat) - ((1-y)/(1-yhat))) / len(y)
 
     def _mean_squared_error(self, y: ArrayLike, y_hat: ArrayLike) -> float:
         """
@@ -347,7 +347,7 @@ class NeuralNetwork:
             loss: float
                 Average loss of mini-batch.
         """
-        pass
+        return np.square(y-yhat).mean()
 
     def _mean_squared_error_backprop(self, y: ArrayLike, y_hat: ArrayLike) -> ArrayLike:
         """
@@ -363,7 +363,7 @@ class NeuralNetwork:
             dA: ArrayLike
                 partial derivative of loss with respect to A matrix.
         """
-        pass
+        return 2*(y_hat - y) / len(y)
 
     def _loss_function(self, y: ArrayLike, y_hat: ArrayLike) -> float:
         """
