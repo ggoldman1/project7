@@ -124,14 +124,14 @@ class NeuralNetwork:
                 Dictionary storing Z and A matrices from `_single_forward` for use in backprop.
         """
         cache = {}
-        A_prev = X.copy()
+        A_prev = X
         for layer in range(1, len(self.arch) + 1):
             A_curr, Z_curr = self._single_forward(self._param_dict[f"W{layer}"],
                                                   self._param_dict[f"b{layer}"],
                                                   A_prev, self.arch[layer-1]["activation"]) # pass through one layer
             cache[f"A{layer}"] = A_curr # store A
             cache[f"Z{layer}"] = Z_curr # store Z
-            A_prev = A_curr.copy() # update prev pointer
+            A_prev = A_curr # update prev pointer
         return A_prev, cache
 
     def _single_backprop(self,
@@ -283,7 +283,8 @@ class NeuralNetwork:
             dZ: ArrayLike
                 Partial derivative of current layer Z matrix.
         """
-        pass
+        dZ = self._sigmoid(Z)*(1-self._sigmoid(Z))
+        return dZ*dA
 
     def _relu_backprop(self, dA: ArrayLike, Z: ArrayLike) -> ArrayLike:
         """
@@ -299,7 +300,9 @@ class NeuralNetwork:
             dZ: ArrayLike
                 Partial derivative of current layer Z matrix.
         """
-        pass
+        dZ = np.where(Z > 0, 1, 0)
+        return dZ*dA
+
 
     def _binary_cross_entropy(self, y: ArrayLike, y_hat: ArrayLike) -> float:
         """
