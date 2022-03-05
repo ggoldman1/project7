@@ -167,10 +167,15 @@ class NeuralNetwork:
                 Partial derivative of loss function with respect to current layer bias matrix.
         """
         if activation_curr == "relu":
-            dZ_curr = self._relu_backprop(dA_curr, Z_curr)
+            dZ_curr = self._relu_backprop(Z_curr)
         else:
-            dZ_curr = self._sigmoid_backprop(dA_curr, Z_curr)
+            dZ_curr = self._sigmoid_backprop(Z_curr)
+
+        dA_prev = dA_curr.dot(dZ_curr).dot(W_curr)
+        dW_curr = dA_curr.dot(dZ_curr).dot(A_prev)
+        db_curr = dA_curr.dot(dZ_curr)
         
+        return dA_prev, dW_curr, db_curr
 
     def backprop(self, y: ArrayLike, y_hat: ArrayLike, cache: Dict[str, ArrayLike]):
         """
@@ -273,13 +278,11 @@ class NeuralNetwork:
         """
         return np.maximum(0, Z)
 
-    def _sigmoid_backprop(self, dA: ArrayLike, Z: ArrayLike):
+    def _sigmoid_backprop(self, Z: ArrayLike):
         """
         Sigmoid derivative for backprop.
 
         Args:
-            dA: ArrayLike
-                Partial derivative of previous layer activation matrix.
             Z: ArrayLike
                 Output of layer linear transform.
 
@@ -288,15 +291,13 @@ class NeuralNetwork:
                 Partial derivative of current layer Z matrix.
         """
         dZ = self._sigmoid(Z)*(1-self._sigmoid(Z))
-        return dZ*dA
+        return dZ
 
-    def _relu_backprop(self, dA: ArrayLike, Z: ArrayLike) -> ArrayLike:
+    def _relu_backprop(self, Z: ArrayLike) -> ArrayLike:
         """
         ReLU derivative for backprop.
 
         Args:
-            dA: ArrayLike
-                Partial derivative of previous layer activation matrix.
             Z: ArrayLike
                 Output of layer linear transform.
 
