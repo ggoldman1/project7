@@ -124,6 +124,7 @@ class NeuralNetwork:
                 Dictionary storing Z and A matrices from `_single_forward` for use in backprop.
         """
         cache = {}
+        cache["A0"] = X
         A_prev = X
         for layer in range(1, len(self.arch) + 1):
             A_curr, Z_curr = self._single_forward(self._param_dict[f"W{layer}"],
@@ -132,7 +133,7 @@ class NeuralNetwork:
             cache[f"A{layer}"] = A_curr # store A
             cache[f"Z{layer}"] = Z_curr # store Z
             A_prev = A_curr # update prev pointer
-        return A_prev, cache
+        return A_curr, cache
 
     def _single_backprop(self,
                          W_curr: ArrayLike,
@@ -166,14 +167,15 @@ class NeuralNetwork:
             db_curr: ArrayLike
                 Partial derivative of loss function with respect to current layer bias matrix.
         """
+        # import pdb; pdb.set_trace()
         if activation_curr == "relu":
             dZ_curr = self._relu_backprop(Z_curr)
         else:
             dZ_curr = self._sigmoid_backprop(Z_curr)
 
-        dA_prev = dA_curr.dot(dZ_curr).dot(W_curr)
-        dW_curr = dA_curr.dot(dZ_curr).dot(A_prev)
-        db_curr = dA_curr.dot(dZ_curr)
+        dA_prev = (dA_curr*dZ_curr).dot(W_curr)
+        dW_curr = (A_prev.T).dot(dA_curr*dZ_curr).T # make sure this aligns with dimensions of self._param_dict[Wx]
+        db_curr = np.ones(dA_curr.T.shape).dot(dA_curr*dZ_curr)
         
         return dA_prev, dW_curr, db_curr
 
@@ -194,7 +196,28 @@ class NeuralNetwork:
             grad_dict: Dict[str, ArrayLike]
                 Dictionary containing the gradient information from this pass of backprop.
         """
-        pass
+        grad_dict = {}
+
+        if self._loss_func == 'mse':
+            dA_curr = self._mean_squared_error_backprop(y, y_hat)
+        else:
+            dA_curr = self._binary_cross_entropy_backprop(y, y_hat)
+
+        for layer in range(len(self.arch), 0, -1):
+
+            dA_prev, dW_curr, db_curr = self._single_backprop(self._param_dict[f"W{layer}"],
+                                                              self._param_dict[f"b{layer}"],
+                                                              cache[f"Z{layer}"],
+                                                              cache[f"A{layer-1}"],
+                                                              dA_curr,
+                                                              self.arch[layer-1]["activation"])
+            A_prev = cache[f"A{layer}"]
+
+            grad_dict[f"dA_prev{layer}"] = dA_prev
+            grad_dict[f"dW_curr{layer}"] = dW_curr
+            grad_dict[f"db_curr{layer}"] = db_curr
+
+        return grad_dict
 
     def _update_params(self, grad_dict: Dict[str, ArrayLike]):
         """
@@ -305,8 +328,8 @@ class NeuralNetwork:
             dZ: ArrayLike
                 Partial derivative of current layer Z matrix.
         """
-        dZ = np.where(Z > 0, 1, 0)
-        return dZ*dA
+        dZ = np.where(Z > 0, Z, 0)
+        return dZ
 
 
     def _binary_cross_entropy(self, y: ArrayLike, y_hat: ArrayLike) -> float:
@@ -403,7 +426,11 @@ class NeuralNetwork:
         """
         pass
 
+num_data = 10
 
-nn = NeuralNetwork([{'input_dim': 64, 'output_dim': 32, 'activation': 'relu'},
-                    {'input_dim': 32, 'output_dim': 8, 'activation': 'sigmoid'}], 0.1, 42, 10, 1, "mse")
-data = np.random.random((100, 64))
+nn = NeuralNetwork([{'input_dim': 10, 'output_dim': 5, 'activation': 'relu'},
+                    {'input_dim': 5, 'output_dim': 1, 'activation': 'sigmoid'}], 0.1, 42, 10, 1, "mse")
+data = np.random.random((num_data, 10))
+target = np.random.random((num_data,1))
+output, cache = nn.forward(data)
+grad_dict = nn.backprop(target, output, cache)
