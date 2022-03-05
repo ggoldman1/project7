@@ -166,7 +166,11 @@ class NeuralNetwork:
             db_curr: ArrayLike
                 Partial derivative of loss function with respect to current layer bias matrix.
         """
-        pass
+        if activation_curr == "relu":
+            dZ_curr = self._relu_backprop(dA_curr, Z_curr)
+        else:
+            dZ_curr = self._sigmoid_backprop(dA_curr, Z_curr)
+        
 
     def backprop(self, y: ArrayLike, y_hat: ArrayLike, cache: Dict[str, ArrayLike]):
         """
