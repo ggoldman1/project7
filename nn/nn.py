@@ -282,7 +282,7 @@ class NeuralNetwork:
             within_epoch_loss_val = []
             for X, y in zip(X_batch, y_batch): # one epoch
 
-                y_hat, cache = self.predict(X)
+                y_hat, cache = self.forward(X)
 
                 # update parameters via backprop
                 grad_dict = self.backprop(y, y_hat, cache)
@@ -291,7 +291,7 @@ class NeuralNetwork:
                 param_update += self._get_param_update_magnitude(old_params, self._param_dict)
 
                 # keep track of validation and training loss
-                y_hat_val, _ = self.predict(X_val)
+                y_hat_val = self.predict(X_val)
                 if self._loss_func == "mse":
                     loss_train = self._mean_squared_error(y, y_hat)
                     loss_val = self._mean_squared_error(y_val, y_hat_val)
@@ -343,7 +343,7 @@ class NeuralNetwork:
             y_hat: ArrayLike
                 Prediction from the model.
         """
-        return self.forward(X)
+        return self.forward(X)[0]
 
     def _sigmoid(self, Z: ArrayLike) -> ArrayLike:
         """
@@ -498,13 +498,13 @@ class NeuralNetwork:
         """
         pass
 
-num_data = 100
-
-nn = NeuralNetwork([{'input_dim': 10, 'output_dim': 5, 'activation': 'relu'},
-                    {'input_dim': 5, 'output_dim': 1, 'activation': 'sigmoid'}], .1, 42, 10, 10, "mse")
-data = np.random.random((num_data, 10))
-train, val = np.array_split(data, 2)
-target_train, target_val = np.array_split(np.random.random((num_data,1)), 2)
-# output, cache = nn.forward(data)
-# grad_dict = nn.backprop(target, output, cache)
-train_loss, val_loss = nn.fit(train, target_train, val, target_val)
+# num_data = 100
+#
+# nn = NeuralNetwork([{'input_dim': 10, 'output_dim': 5, 'activation': 'relu'},
+#                     {'input_dim': 5, 'output_dim': 1, 'activation': 'sigmoid'}], .1, 42, 10, 10, "mse")
+# data = np.random.random((num_data, 10))
+# train, val = np.array_split(data, 2)
+# target_train, target_val = np.array_split(np.random.random((num_data,1)), 2)
+# # output, cache = nn.forward(data)
+# # grad_dict = nn.backprop(target, output, cache)
+# train_loss, val_loss = nn.fit(train, target_train, val, target_val)
