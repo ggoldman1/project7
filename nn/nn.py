@@ -259,6 +259,53 @@ class NeuralNetwork:
             per_epoch_loss_val: List[float]
                 List of per epoch loss for validation set.
         """
+        per_epoch_loss_train = []
+        per_epoch_loss_val = []
+
+        epoch = 1
+        param_update = 1
+
+        while param_update > 0.001 and epoch < self._epochs:
+            param_update = 0
+
+            # shuffle the training data
+            shuf = np.concatenate([X_train, y_train], axis=1)
+            np.random.shuffle(shuf)
+            X_train = shuf[:, :-1]
+            y_train = shuf[:,-1].reshape(len(y_train), 1)
+
+            # get the training batches
+            num_batches = int(X_train.shape[0]/self.batch_size) + 1
+            X_batch = np.array_split(X_train, num_batches)
+            y_batch = np.array_split(y_train, num_batches)
+
+            within_epoch_loss_train = []
+            within_epoch_val_train = []
+            for X, y in zip(X_batch, y_batch): # one epoch
+
+                y_hat, cache = self.predict(X)
+
+                # update parameters via backprop
+                grad_dict = self.backprop(y_train, y_hat, cache)
+                old_params = self._param_dict
+                self._update_params(grad_dict)
+                param_update += self.get_param_update_magnitude(old_params)
+
+                # keep track of validation and training loss
+                y_hat_val, _ = self.predict(X_val)
+                if self._loss_func == "mse":
+                    loss_train = self._mean_squared_error(y_train, y_hat)
+                    loss_val = self._mean_squared_error(y_val, y_hat_val)
+                else:
+                    loss_train = self._binary_cross_entropy(y_train, y_hat)
+                    loss_val = self._binary_cross_entropy(y_val, y_hat_val)
+                within_epoch_loss_train.append(loss_train)
+                within_epoch_val_train.append(loss_val)
+
+            epoch += 1
+
+
+    def _get_param_update_magnitude(self, old_params: ArrayLike) -> float:
         pass
 
     def predict(self, X: ArrayLike) -> ArrayLike:
