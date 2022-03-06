@@ -231,7 +231,9 @@ class NeuralNetwork:
         Returns:
             None
         """
-        pass
+        for layer in range(1, len(self.arch)):
+            self._param_dict[f"W{layer}"] = self._param_dict[f"W{layer}"] - self._lr*grad_dict[f"W{layer}"]
+            self._param_dict[f"b{layer}"] = self._param_dict[f"b{layer}"] - self._lr * grad_dict[f"b{layer}"]
 
     def fit(self,
             X_train: ArrayLike,
