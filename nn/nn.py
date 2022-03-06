@@ -282,21 +282,18 @@ class NeuralNetwork:
             within_epoch_loss_val = []
             for X, y in zip(X_batch, y_batch): # one epoch
 
-
                 y_hat, cache = self.predict(X)
 
                 # update parameters via backprop
                 grad_dict = self.backprop(y, y_hat, cache)
-                old_params = self._param_dict
+                old_params = self._param_dict.copy()
                 self._update_params(grad_dict)
                 param_update += self._get_param_update_magnitude(old_params, self._param_dict)
 
                 # keep track of validation and training loss
-                # import pdb; pdb.set_trace()
                 y_hat_val, _ = self.predict(X_val)
-                print("done validation")
                 if self._loss_func == "mse":
-                    loss_train = self._mean_squared_error(y_train, y_hat)
+                    loss_train = self._mean_squared_error(y, y_hat)
                     loss_val = self._mean_squared_error(y_val, y_hat_val)
                 else:
                     loss_train = self._binary_cross_entropy(y_train, y_hat)
@@ -308,6 +305,7 @@ class NeuralNetwork:
 
             per_epoch_loss_train.append(np.mean(within_epoch_loss_train))
             per_epoch_loss_val.append(np.mean(within_epoch_loss_train))
+
 
             epoch += 1
 
@@ -452,7 +450,7 @@ class NeuralNetwork:
             loss: float
                 Average loss of mini-batch.
         """
-        return np.square(y-yhat).mean()
+        return np.square(y-y_hat).mean()
 
     def _mean_squared_error_backprop(self, y: ArrayLike, y_hat: ArrayLike) -> ArrayLike:
         """
@@ -503,7 +501,7 @@ class NeuralNetwork:
 num_data = 100
 
 nn = NeuralNetwork([{'input_dim': 10, 'output_dim': 5, 'activation': 'relu'},
-                    {'input_dim': 5, 'output_dim': 1, 'activation': 'sigmoid'}], 0.1, 42, 10, 10, "mse")
+                    {'input_dim': 5, 'output_dim': 1, 'activation': 'sigmoid'}], .1, 42, 10, 10, "mse")
 data = np.random.random((num_data, 10))
 train, val = np.array_split(data, 2)
 target_train, target_val = np.array_split(np.random.random((num_data,1)), 2)
