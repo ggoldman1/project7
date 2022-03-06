@@ -167,7 +167,6 @@ class NeuralNetwork:
             db_curr: ArrayLike
                 Partial derivative of loss function with respect to current layer bias matrix.
         """
-        # import pdb; pdb.set_trace()
         if activation_curr == "relu":
             dZ_curr = self._relu_backprop(Z_curr)
         else:
@@ -232,8 +231,8 @@ class NeuralNetwork:
             None
         """
         for layer in range(1, len(self.arch)):
-            self._param_dict[f"W{layer}"] = self._param_dict[f"W{layer}"] - self._lr*grad_dict[f"W{layer}"]
-            self._param_dict[f"b{layer}"] = self._param_dict[f"b{layer}"] - self._lr * grad_dict[f"b{layer}"]
+            self._param_dict[f"W{layer}"] = self._param_dict[f"W{layer}"] - self._lr*grad_dict[f"dW_curr{layer}"]
+            self._param_dict[f"b{layer}"] = self._param_dict[f"b{layer}"] - self._lr * grad_dict[f"db_curr{layer}"].T
 
     def fit(self,
             X_train: ArrayLike,
@@ -275,24 +274,27 @@ class NeuralNetwork:
             y_train = shuf[:,-1].reshape(len(y_train), 1)
 
             # get the training batches
-            num_batches = int(X_train.shape[0]/self.batch_size) + 1
+            num_batches = int(X_train.shape[0]/self._batch_size) + 1
             X_batch = np.array_split(X_train, num_batches)
             y_batch = np.array_split(y_train, num_batches)
 
             within_epoch_loss_train = []
-            within_epoch_val_train = []
+            within_epoch_loss_val = []
             for X, y in zip(X_batch, y_batch): # one epoch
+
 
                 y_hat, cache = self.predict(X)
 
                 # update parameters via backprop
-                grad_dict = self.backprop(y_train, y_hat, cache)
+                grad_dict = self.backprop(y, y_hat, cache)
                 old_params = self._param_dict
                 self._update_params(grad_dict)
-                param_update += self.get_param_update_magnitude(old_params)
+                param_update += self._get_param_update_magnitude(old_params, self._param_dict)
 
                 # keep track of validation and training loss
+                # import pdb; pdb.set_trace()
                 y_hat_val, _ = self.predict(X_val)
+                print("done validation")
                 if self._loss_func == "mse":
                     loss_train = self._mean_squared_error(y_train, y_hat)
                     loss_val = self._mean_squared_error(y_val, y_hat_val)
@@ -300,13 +302,36 @@ class NeuralNetwork:
                     loss_train = self._binary_cross_entropy(y_train, y_hat)
                     loss_val = self._binary_cross_entropy(y_val, y_hat_val)
                 within_epoch_loss_train.append(loss_train)
-                within_epoch_val_train.append(loss_val)
+                within_epoch_loss_val.append(loss_val)
+
+            param_update /= num_batches # average param update magnitude across the # of batches
+
+            per_epoch_loss_train.append(np.mean(within_epoch_loss_train))
+            per_epoch_loss_val.append(np.mean(within_epoch_loss_train))
 
             epoch += 1
 
+        return per_epoch_loss_train, per_epoch_loss_val
 
-    def _get_param_update_magnitude(self, old_params: ArrayLike) -> float:
-        pass
+
+    def _get_param_update_magnitude(self, old_params: ArrayLike, new_params: ArrayLike) -> float:
+        """
+        Get the average absolute value parameter difference after updating with backpropagation.
+
+        Args:
+            old_params: ArrayLike
+                Previous parameters
+            new_params: ArrayLike
+                New parameters
+
+        Return:
+            float
+                Average difference in old vs new parameters
+        """
+        avg_update = []
+        for param in old_params.keys():
+            avg_update.append(np.mean(np.abs(old_params[param] - new_params[param])))
+        return np.mean(avg_update)
 
     def predict(self, X: ArrayLike) -> ArrayLike:
         """
@@ -475,11 +500,13 @@ class NeuralNetwork:
         """
         pass
 
-num_data = 10
+num_data = 100
 
 nn = NeuralNetwork([{'input_dim': 10, 'output_dim': 5, 'activation': 'relu'},
-                    {'input_dim': 5, 'output_dim': 1, 'activation': 'sigmoid'}], 0.1, 42, 10, 1, "mse")
+                    {'input_dim': 5, 'output_dim': 1, 'activation': 'sigmoid'}], 0.1, 42, 10, 10, "mse")
 data = np.random.random((num_data, 10))
-target = np.random.random((num_data,1))
-output, cache = nn.forward(data)
-grad_dict = nn.backprop(target, output, cache)
+train, val = np.array_split(data, 2)
+target_train, target_val = np.array_split(np.random.random((num_data,1)), 2)
+# output, cache = nn.forward(data)
+# grad_dict = nn.backprop(target, output, cache)
+train_loss, val_loss = nn.fit(train, target_train, val, target_val)
