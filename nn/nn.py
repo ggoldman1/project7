@@ -272,8 +272,8 @@ class NeuralNetwork:
             # shuffle the training data
             shuf = np.concatenate([X_train, y_train], axis=1)
             np.random.shuffle(shuf)
-            X_train = shuf[:, :target_dim]
-            y_train = shuf[:,target_dim:].reshape(len(y_train), target_dim)
+            X_train = shuf[:, :-target_dim]
+            y_train = shuf[:,-target_dim:].reshape(len(y_train), target_dim)
 
             # get the training batches
             num_batches = int(X_train.shape[0]/self._batch_size) + 1
@@ -510,16 +510,16 @@ class NeuralNetwork:
 # # output, cache = nn.forward(data)
 # # grad_dict = nn.backprop(target, output, cache)
 # train_loss, val_loss = nn.fit(train, target_train, val, target_val)
-
-from sklearn.datasets import load_digits
-data = load_digits()["data"]
-n = data.shape[0]
-train_rows = int(0.8*n) # 80% train, 20% test
-np.random.shuffle(data)
-X_train, X_val = data[0:train_rows, :], data[train_rows:n, :]
-
-net = NeuralNetwork([{'input_dim': 64, 'output_dim': 16, 'activation': "relu"},
-                                     {'input_dim': 16, 'output_dim': 64, 'activation': "relu"}],
-                                    1, 42, 10, 10, "mse")
-
-net.fit(X_train, X_train, X_val, X_val)
+#
+# from sklearn.datasets import load_digits
+# data = load_digits()["data"]
+# n = data.shape[0]
+# train_rows = int(0.8*n) # 80% train, 20% test
+# np.random.shuffle(data)
+# X_train, X_val = data[0:train_rows, :], data[train_rows:n, :]
+#
+# net = NeuralNetwork([{'input_dim': 64, 'output_dim': 16, 'activation': "relu"},
+#                                      {'input_dim': 16, 'output_dim': 64, 'activation': "relu"}],
+#                                     1, 42, 10, 10, "mse")
+#
+# net.fit(X_train, X_train, X_val, X_val)
