@@ -174,7 +174,7 @@ class NeuralNetwork:
 
         dA_prev = (dA_curr*dZ_curr).dot(W_curr)
         dW_curr = (A_prev.T).dot(dA_curr*dZ_curr).T # make sure this aligns with dimensions of self._param_dict[Wx]
-        db_curr = np.ones(dA_curr.T.shape).dot(dA_curr*dZ_curr)
+        db_curr = np.sum((dA_curr*dZ_curr), axis=0).reshape(b_curr.shape) # make sure this is the same dimension as bias
         
         return dA_prev, dW_curr, db_curr
 
@@ -210,11 +210,11 @@ class NeuralNetwork:
                                                               cache[f"A{layer-1}"],
                                                               dA_curr,
                                                               self.arch[layer-1]["activation"])
-            A_prev = cache[f"A{layer}"]
 
             grad_dict[f"dA_prev{layer}"] = dA_prev
             grad_dict[f"dW_curr{layer}"] = dW_curr
             grad_dict[f"db_curr{layer}"] = db_curr
+            dA_curr = dA_prev
 
         return grad_dict
 
@@ -232,7 +232,7 @@ class NeuralNetwork:
         """
         for layer in range(1, len(self.arch)):
             self._param_dict[f"W{layer}"] = self._param_dict[f"W{layer}"] - self._lr*grad_dict[f"dW_curr{layer}"]
-            self._param_dict[f"b{layer}"] = self._param_dict[f"b{layer}"] - self._lr * grad_dict[f"db_curr{layer}"].T
+            self._param_dict[f"b{layer}"] = self._param_dict[f"b{layer}"] - self._lr * grad_dict[f"db_curr{layer}"]
 
     def fit(self,
             X_train: ArrayLike,
@@ -264,14 +264,16 @@ class NeuralNetwork:
         epoch = 1
         param_update = 1
 
+        target_dim = self.arch[-1]["output_dim"]
+
         while param_update > 0.001 and epoch < self._epochs:
             param_update = 0
 
             # shuffle the training data
             shuf = np.concatenate([X_train, y_train], axis=1)
             np.random.shuffle(shuf)
-            X_train = shuf[:, :-1]
-            y_train = shuf[:,-1].reshape(len(y_train), 1)
+            X_train = shuf[:, :target_dim]
+            y_train = shuf[:,target_dim:].reshape(len(y_train), target_dim)
 
             # get the training batches
             num_batches = int(X_train.shape[0]/self._batch_size) + 1
@@ -508,3 +510,16 @@ class NeuralNetwork:
 # # output, cache = nn.forward(data)
 # # grad_dict = nn.backprop(target, output, cache)
 # train_loss, val_loss = nn.fit(train, target_train, val, target_val)
+
+from sklearn.datasets import load_digits
+data = load_digits()["data"]
+n = data.shape[0]
+train_rows = int(0.8*n) # 80% train, 20% test
+np.random.shuffle(data)
+X_train, X_val = data[0:train_rows, :], data[train_rows:n, :]
+
+net = NeuralNetwork([{'input_dim': 64, 'output_dim': 16, 'activation': "relu"},
+                                     {'input_dim': 16, 'output_dim': 64, 'activation': "relu"}],
+                                    1, 42, 10, 10, "mse")
+
+net.fit(X_train, X_train, X_val, X_val)
