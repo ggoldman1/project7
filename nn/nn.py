@@ -305,7 +305,7 @@ class NeuralNetwork:
                 within_epoch_loss_val.append(loss_val)
 
             per_epoch_loss_train.append(np.mean(within_epoch_loss_train))
-            per_epoch_loss_val.append(np.mean(within_epoch_loss_train))
+            per_epoch_loss_val.append(np.mean(within_epoch_loss_val))
 
 
             epoch += 1
@@ -521,4 +521,4 @@ net = NeuralNetwork([{'input_dim': 64, 'output_dim': 16, 'activation': "sigmoid"
                                      {'input_dim': 16, 'output_dim': 64, 'activation': "sigmoid"}],
                                     .1, 42, 10, 10, "mse")
 
-net.fit(X_train, X_train, X_val, X_val)
+train_loss, val_loss = net.fit(X_train, X_train, X_val, X_val)
