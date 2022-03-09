@@ -267,6 +267,7 @@ class NeuralNetwork:
         target_dim = self.arch[-1]["output_dim"]
 
         while param_update > 0.001 and epoch < self._epochs:
+
             param_update = 0
 
             # shuffle the training data
@@ -302,8 +303,6 @@ class NeuralNetwork:
                     loss_val = self._binary_cross_entropy(y_val, y_hat_val)
                 within_epoch_loss_train.append(loss_train)
                 within_epoch_loss_val.append(loss_val)
-
-            param_update /= num_batches # average param update magnitude across the # of batches
 
             per_epoch_loss_train.append(np.mean(within_epoch_loss_train))
             per_epoch_loss_val.append(np.mean(within_epoch_loss_train))
@@ -511,15 +510,15 @@ class NeuralNetwork:
 # # grad_dict = nn.backprop(target, output, cache)
 # train_loss, val_loss = nn.fit(train, target_train, val, target_val)
 #
-# from sklearn.datasets import load_digits
-# data = load_digits()["data"]
-# n = data.shape[0]
-# train_rows = int(0.8*n) # 80% train, 20% test
-# np.random.shuffle(data)
-# X_train, X_val = data[0:train_rows, :], data[train_rows:n, :]
-#
-# net = NeuralNetwork([{'input_dim': 64, 'output_dim': 16, 'activation': "relu"},
-#                                      {'input_dim': 16, 'output_dim': 64, 'activation': "relu"}],
-#                                     1, 42, 10, 10, "mse")
-#
-# net.fit(X_train, X_train, X_val, X_val)
+from sklearn.datasets import load_digits
+data = load_digits()["data"]
+n = data.shape[0]
+train_rows = int(0.8*n) # 80% train, 20% test
+np.random.shuffle(data)
+X_train, X_val = data[0:train_rows, :], data[train_rows:n, :]
+
+net = NeuralNetwork([{'input_dim': 64, 'output_dim': 16, 'activation': "sigmoid"},
+                                     {'input_dim': 16, 'output_dim': 64, 'activation': "sigmoid"}],
+                                    .1, 42, 10, 10, "mse")
+
+net.fit(X_train, X_train, X_val, X_val)
