@@ -299,13 +299,14 @@ class NeuralNetwork:
                     loss_train = self._mean_squared_error(y, y_hat)
                     loss_val = self._mean_squared_error(y_val, y_hat_val)
                 else:
-                    loss_train = self._binary_cross_entropy(y_train, y_hat)
+                    loss_train = self._binary_cross_entropy(y, y_hat)
                     loss_val = self._binary_cross_entropy(y_val, y_hat_val)
                 within_epoch_loss_train.append(loss_train)
                 within_epoch_loss_val.append(loss_val)
 
-            per_epoch_loss_train.append(np.mean(within_epoch_loss_train))
-            per_epoch_loss_val.append(np.mean(within_epoch_loss_val))
+
+            per_epoch_loss_train += within_epoch_loss_train
+            per_epoch_loss_val += within_epoch_loss_val
 
 
             epoch += 1
@@ -419,6 +420,8 @@ class NeuralNetwork:
             loss: float
                 Average loss over mini-batch.
         """
+        y_hat = np.where(y_hat == 0, 0.001, y_hat)
+        y_hat = np.where(y_hat == 1, 0.999, y_hat)
         return -((y * np.log(y_hat)) + ((1-y) * (np.log(1-y_hat)))).mean()
 
     def _binary_cross_entropy_backprop(self, y: ArrayLike, y_hat: ArrayLike) -> ArrayLike:
@@ -435,6 +438,8 @@ class NeuralNetwork:
             dA: ArrayLike
                 partial derivative of loss with respect to A matrix.
         """
+        y_hat = np.where(y_hat == 0, 0.001, y_hat)
+        y_hat = np.where(y_hat == 1, 0.999, y_hat)
         return -((y/y_hat) - ((1-y)/(1-y_hat))) / len(y)
 
     def _mean_squared_error(self, y: ArrayLike, y_hat: ArrayLike) -> float:
