@@ -10,6 +10,7 @@ ENCODING = {"A": [1, 0, 0, 0],
             "T": [0, 1, 0, 0],
             "C": [0, 0, 1, 0],
             "G": [0, 0, 0, 1]}
+ALPHABET = set(ENCODING.keys())
 
 # Defining preprocessing functions
 def one_hot_encode_seqs(seq_arr: List[str]) -> ArrayLike:
@@ -34,11 +35,11 @@ def one_hot_encode_seqs(seq_arr: List[str]) -> ArrayLike:
             Then, AGA -> [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
     """
 
-    alphabet = set(ENCODING.keys())
+
 
     seq_enc = []
     for seq in [s.upper() for s in seq_arr]:
-        if len(set(seq) - set(alphabet)) > 0: # check if any non ATCG characters
+        if len(set(seq) - ALPHABET) > 0: # check if any non ATCG characters
             raise ValueError(f"There is a character in the passed sequence {seq} that is not in the alphabet {alphabet}.")
 
         encoded = []
@@ -69,22 +70,22 @@ def sample_seqs(
             List of labels for the sampled sequences
     """
     n = len(labels)
-    positive_idx = list(np.where(labels)[0]) # all indices of seqs/labels corresponding to True
-    negative_idx = list({x for x in range(n)} - set(positive_idx)) # all indices of seqs/labels corresponding to False
+    positive_idx = list(np.where(np.array(labels)==1)[0]) # all indices of seqs/labels corresponding to True
+    negative_idx = list(np.where(np.array(labels)==0)[0]) # all indices of seqs/labels corresponding to False
 
 
     sampled_seqs = []
     sampled_labels = []
-    for i in range(n):
+    for i in range(len(positive_idx)*2):
         coin_flip = np.random.uniform()
         if coin_flip < 0.5: # choose from positive samples with probaility 1/2
             sample = int(np.random.uniform(0, len(positive_idx))) # select a datapoint at random
             sampled_seqs.append(seqs[positive_idx[sample]])
-            sampled_labels.append(seqs[positive_idx[sample]])
+            sampled_labels.append(labels[positive_idx[sample]])
         else: # choose from negative samples with probability 1/2
             sample = int(np.random.uniform(0, len(negative_idx))) # select a datapoint at random
             sampled_seqs.append(seqs[negative_idx[sample]])
-            sampled_labels.append(seqs[negative_idx[sample]])
+            sampled_labels.append(labels[negative_idx[sample]])
 
     return sampled_seqs, sampled_labels
 

@@ -435,7 +435,7 @@ class NeuralNetwork:
             dA: ArrayLike
                 partial derivative of loss with respect to A matrix.
         """
-        return -((y/yhat) - ((1-y)/(1-yhat))) / len(y)
+        return -((y/y_hat) - ((1-y)/(1-y_hat))) / len(y)
 
     def _mean_squared_error(self, y: ArrayLike, y_hat: ArrayLike) -> float:
         """
@@ -499,26 +499,3 @@ class NeuralNetwork:
         """
         pass
 
-# num_data = 100
-#
-# nn = NeuralNetwork([{'input_dim': 10, 'output_dim': 5, 'activation': 'relu'},
-#                     {'input_dim': 5, 'output_dim': 1, 'activation': 'sigmoid'}], .1, 42, 10, 10, "mse")
-# data = np.random.random((num_data, 10))
-# train, val = np.array_split(data, 2)
-# target_train, target_val = np.array_split(np.random.random((num_data,1)), 2)
-# # output, cache = nn.forward(data)
-# # grad_dict = nn.backprop(target, output, cache)
-# train_loss, val_loss = nn.fit(train, target_train, val, target_val)
-#
-from sklearn.datasets import load_digits
-data = load_digits()["data"]
-n = data.shape[0]
-train_rows = int(0.8*n) # 80% train, 20% test
-np.random.shuffle(data)
-X_train, X_val = data[0:train_rows, :], data[train_rows:n, :]
-
-net = NeuralNetwork([{'input_dim': 64, 'output_dim': 16, 'activation': "sigmoid"},
-                                     {'input_dim': 16, 'output_dim': 64, 'activation': "sigmoid"}],
-                                    .1, 42, 10, 10, "mse")
-
-train_loss, val_loss = net.fit(X_train, X_train, X_val, X_val)
