@@ -87,3 +87,26 @@ def sample_seqs(
             sampled_labels.append(seqs[negative_idx[sample]])
 
     return sampled_seqs, sampled_labels
+
+def read_fasta(path: str) -> List[str]:
+    """
+    Given a path to a fa file, read it in line by line and return sequences as a list of strings. 
+    
+    Args:
+        path: str
+            Path to .fa file 
+    
+    Returns:
+        seqs: List[str]
+            Sequences stored in a list of strings 
+    """
+    seqs = []
+    seq = ""
+    with open(path) as file:
+        for line in file:
+            if ">" in line: # sequence header, can skip
+                seqs.append(seq) # keep track of full sequence
+                seq = ""
+            else:
+                seq += line.strip("\n")
+    return seqs[1:] # the first entry will just be \"\", can remove this 
