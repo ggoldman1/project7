@@ -1,3 +1,5 @@
+![BuildStatus](https://github.com/ggoldman1/project7/actions/workflows/tests.yml/badge.svg)
+
 # Project 7
 Fully Connected Neural Network
 
