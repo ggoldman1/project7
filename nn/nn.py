@@ -50,6 +50,7 @@ class NeuralNetwork:
         self._batch_size = batch_size
         # Initializing the parameter dictionary for use in training
         self._param_dict = self._init_params()
+        self._trained = False
 
     def _init_params(self) -> Dict[str, ArrayLike]:
         """
@@ -311,6 +312,7 @@ class NeuralNetwork:
 
             epoch += 1
 
+        self._trained = True
         return per_epoch_loss_train, per_epoch_loss_val
 
 
@@ -345,6 +347,8 @@ class NeuralNetwork:
             y_hat: ArrayLike
                 Prediction from the model.
         """
+        if not self._trained:
+            raise ValueError("You must train the model before you predict")
         return self.forward(X)[0]
 
     def _sigmoid(self, Z: ArrayLike) -> ArrayLike:
