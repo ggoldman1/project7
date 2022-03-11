@@ -2,6 +2,7 @@
 
 import nn
 import numpy as np
+import pytest
 
 # TODO: Write your test functions and associated docstrings below.
 
@@ -66,29 +67,40 @@ def test_single_backprop():
         assert np.all(db_curr == np.sum((dA_curr*dZ_curr), axis=0).reshape(net._param_dict[f"b{layer}"].shape))
 
 def test_predict():
-    pass
-
+    net = nn.NeuralNetwork([{'input_dim': 68, 'output_dim': 34, 'activation': "sigmoid"},
+                            {'input_dim': 34, 'output_dim': 17, 'activation': "relu"},
+                            {"input_dim": 17, 'output_dim': 1, 'activation': "sigmoid"}],
+                           0.1, 42, 10, 10, "mse")
+    with pytest.raises(ValueError):
+        net.predict(X_train)
 
 def test_binary_cross_entropy():
-    pass
+    assert np.isclose(net._binary_cross_entropy(np.array([0, 0, 1, 1]), np.array([0.1, 0.3, 0.5, 0.7])), 0.3779643)
 
 
 def test_binary_cross_entropy_backprop():
-    pass
-
+    assert np.isclose(np.sum(net._binary_cross_entropy_backprop(np.array([0, 0, 1, 1]), np.array([0.1, 0.3, 0.5, 0.7]))
+                             - np.array([0.27777778, 0.35714286, -0.5, -0.35714286])), 0)
 
 def test_mean_squared_error():
-    pass
+    assert np.isclose(net._mean_squared_error(np.array([0.27163318, 0.19060983, 0.18463246, 0.34210762]),
+                                              np.array([[0.42995762, 0.83094917, 0.11989109, 0.73492585]])), 0.14839967)
 
 
 def test_mean_squared_error_backprop():
-    pass
-
+    assert np.isclose(np.sum(net._mean_squared_error_backprop(np.array([0.27163318, 0.19060983, 0.18463246, 0.34210762]),
+                                              np.array([[0.42995762, 0.83094917, 0.11989109, 0.73492585]]))-
+                             np.array([[ 0.07916222, 0.32016967, -0.03237068, 0.19640911]])), 0)
 
 def test_one_hot_encode():
-    pass
+    assert np.all(np.array(nn.preprocess.one_hot_encode_seqs("ATCG")) == np.eye(4))
+    with pytest.raises(ValueError):
+        nn.preprocess.one_hot_encode_seqs("ACTGR")
 
 
 def test_sample_seqs():
-    pass
+    data = np.random.random((1000, 50))
+    labels = [0 for x in range(900)] + [1 for x in range(100)]
+    d, l = nn.preprocess.sample_seqs(data, labels)
+    assert np.abs(np.mean(l) - 0.5) < 0.05
 

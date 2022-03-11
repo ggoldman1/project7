@@ -40,7 +40,7 @@ def one_hot_encode_seqs(seq_arr: List[str]) -> ArrayLike:
     seq_enc = []
     for seq in [s.upper() for s in seq_arr]:
         if len(set(seq) - ALPHABET) > 0: # check if any non ATCG characters
-            raise ValueError(f"There is a character in the passed sequence {seq} that is not in the alphabet {alphabet}.")
+            raise ValueError(f"There is a character in the passed sequence {seq} that is not in the alphabet {ALPHABET}.")
 
         encoded = []
         for l in seq:
