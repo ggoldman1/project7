@@ -259,6 +259,7 @@ class NeuralNetwork:
             per_epoch_loss_val: List[float]
                 List of per epoch loss for validation set.
         """
+        self._trained = True
         per_epoch_loss_train = []
         per_epoch_loss_val = []
 
@@ -312,7 +313,6 @@ class NeuralNetwork:
 
             epoch += 1
 
-        self._trained = True
         return per_epoch_loss_train, per_epoch_loss_val
 
 
